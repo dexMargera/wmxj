@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 
  */
 package ru.webmoney.api;
@@ -148,7 +148,8 @@ public class HttpRequester {
 	private String doRequest(String requestAddress, String requestBody)
 			throws IOException {
 
-		String address = (securedResuest ? "https://" : "http://") + host + requestAddress;
+		String address = (securedResuest ? "https://" : "http://") + host
+				+ requestAddress;
 		URL url = new URL(address);
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -156,22 +157,34 @@ public class HttpRequester {
 			connection.setDoOutput(true);
 			connection.setRequestMethod("POST");
 
-			OutputStreamWriter writer = new OutputStreamWriter(
-					connection.getOutputStream(), getRequestCharset());
-			writer.write(requestBody);
-			writer.close();
+			OutputStreamWriter writer = null;
+
+			try {
+				writer = new OutputStreamWriter(connection.getOutputStream(),
+						getRequestCharset());
+				writer.write(requestBody);
+				writer.close();
+			} finally {
+				if (null != writer)
+					writer.close();
+			}
 		}
 
-		BufferedReader reader = new BufferedReader(new InputStreamReader(
-				connection.getInputStream(), getResponseCharset()));
-
-		String line;
+		BufferedReader reader = null;
 		StringBuilder stringBuilder = new StringBuilder();
 
-		while ((line = reader.readLine()) != null) {
-			stringBuilder.append(line);
-		}
+		try {
+			reader = new BufferedReader(new InputStreamReader(
+					connection.getInputStream(), getResponseCharset()));
 
+			String line;
+			while ((line = reader.readLine()) != null) {
+				stringBuilder.append(line);
+			}
+		} finally {
+			if (null != reader)
+				reader.close();
+		}
 		reader.close();
 
 		return stringBuilder.toString();
@@ -224,7 +237,7 @@ public class HttpRequester {
 	 *         получении их с сервера.
 	 */
 	public String getResponseCharset() {
-		
+
 		if (null == responseCharset)
 			return DEFAULT_CAHRSET;
 
